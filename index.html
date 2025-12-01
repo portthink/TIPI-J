@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIPI-J 診断</title>
+<style>
+body {
+  font-family: "Hiragino Sans", sans-serif;
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 700px;
+  line-height: 1.7;
+}
+h1, h2 {
+  text-align: center;
+}
+.question {
+  margin-bottom: 25px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+button {
+  padding: 12px 20px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  opacity: 0.8;
+}
+.result-box {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+
+<h1>TIPI-J（Ten Item Personality Inventory）</h1>
+<p>1（全く違うと思う）から 7（強くそう思う）の中で、あなたにどれだけ当てはまるか選んでください。</p>
+
+<form id="tipiForm">
+
+<div id="questions"></div>
+
+<div style="text-align:center;">
+  <button type="button" onclick="calculate()">診断する</button>
+</div>
+</form>
+
+<div id="result" class="result-box" style="display:none;"></div>
+
+<script>
+// TIPI-J 質問文
+const items = [
+  "活発で，外向的だと思う",
+  "他人に不満をもち，もめごとを起こしやすいと思う",
+  "しっかりしていて，自分に厳しいと思う",
+  "心配性で，うろたえやすいと思う",
+  "新しいことが好きで，変わった考えをもつと思う",
+  "ひかえめで，おとなしいと思う",
+  "人に気をつかう，やさしい人間だと思う",
+  "だらしなく，うっかりしていると思う",
+  "冷静で，気分が安定していると思う",
+  "発想力に欠けた，平凡な人間だと思う"
+];
+
+// 画面に質問を描画
+function renderQuestions() {
+  const q = document.getElementById("questions");
+  items.forEach((text, i) => {
+    q.innerHTML += `
+      <div class="question">
+        <strong>${i+1}. ${text}</strong><br>
+        ${renderRadios(i)}
+      </div>
+    `;
+  });
+}
+
+function renderRadios(index) {
+  let html = "";
+  for (let v = 1; v <= 7; v++) {
+    html += `
+      <label style="margin-right:12px;">
+        <input type="radio" name="q${index}" value="${v}" required>
+        ${v}
+      </label>
+    `;
+  }
+  return html;
+}
+
+renderQuestions();
+
+// TIPI-J スコア算出（公式準拠）
+function calculate() {
+  const scores = [];
+  for (let i = 0; i < 10; i++) {
+    const val = document.querySelector(`input[name=q${i}]:checked`);
+    if (!val) {
+      alert("全ての項目に回答してね");
+      return;
+    }
+    scores.push(Number(val.value));
+  }
+
+  // TIPI-J 特性計算（逆転項目含む）
+  const Extraversion = (scores[0] + (8 - scores[5])) / 2;
+  const Agreeableness = ((8 - scores[1]) + scores[6]) / 2;
+  const Conscientiousness = (scores[2] + (8 - scores[7])) / 2;
+  const EmotionalStability = ((8 - scores[3]) + scores[8]) / 2;
+  const Openness = (scores[4] + (8 - scores[9])) / 2;
+
+  const resultBox = document.getElementById("result");
+  resultBox.style.display = "block";
+  resultBox.innerHTML = `
+    <h2>診断結果</h2>
+    <p><strong>外向性</strong>：${Extraversion.toFixed(2)}</p>
+    <p><strong>協調性</strong>：${Agreeableness.toFixed(2)}</p>
+    <p><strong>誠実性</strong>：${Conscientiousness.toFixed(2)}</p>
+    <p><strong>情緒安定性</strong>：${EmotionalStability.toFixed(2)}</p>
+    <p><strong>開放性</strong>：${Openness.toFixed(2)}</p>
+  `;
+}
+</script>
+
+</body>
+</html>
